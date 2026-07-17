@@ -15,6 +15,7 @@ import sys
 import json
 import datetime as dt
 import tempfile
+import zipfile
 
 import cdsapi
 import xarray as xr
@@ -37,14 +38,14 @@ VARIABLES = {
 GRASS_LEVELS = [
     (0, 1, "eingin", "None"),
     (1, 30, "lágt", "Low"),
-    (30, 50, "moderat", "Moderate"),
+    (30, 50, "miðal", "Moderate"),
     (50, 150, "høgt", "High"),
     (150, float("inf"), "sera høgt", "Very high"),
 ]
 BIRCH_LEVELS = [
     (0, 1, "eingin", "None"),
     (1, 100, "lágt", "Low"),
-    (100, 300, "moderat", "Moderate"),
+    (100, 300, "miðal", "Moderate"),
     (300, 1500, "høgt", "High"),
     (1500, float("inf"), "sera høgt", "Very high"),
 ]
@@ -68,13 +69,22 @@ def fetch(client, date_str):
         "type": "forecast",
         "time": "00:00",
         "leadtime_hour": leadtimes,
-        "data_format": "netcdf",
+        # ADS letur hesa dátu sum ein zippaðan netcdf ("netcdf_zip").
+        "data_format": "netcdf_zip",
         "area": AREA,
     }
-    tmp = tempfile.NamedTemporaryFile(suffix=".nc", delete=False)
+    tmp = tempfile.NamedTemporaryFile(suffix=".zip", delete=False)
     tmp.close()
     client.retrieve("cams-europe-air-quality-forecasts", request).download(tmp.name)
-    return tmp.name
+
+    # Pakka .nc-fíluna út úr zip-inum.
+    workdir = tempfile.mkdtemp()
+    with zipfile.ZipFile(tmp.name) as zf:
+        nc_names = [n for n in zf.namelist() if n.lower().endswith(".nc")]
+        if not nc_names:
+            raise RuntimeError("Eingin .nc-fíla í zip-inum frá ADS")
+        zf.extract(nc_names[0], workdir)
+        return os.path.join(workdir, nc_names[0])
 
 
 def process(nc_path, base_date):

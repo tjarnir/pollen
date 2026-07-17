@@ -112,9 +112,9 @@
 <body>
 <div class="wrap">
   <header>
-    <p class="eyebrow">Frjógv · Pollen · Føroyar</p>
-    <h1>Hvussu nógv<br><em>frjógv</em> í dag?</h1>
-    <p class="sub">Mett gras- og bjørkufrjógv fyri komandi dagar, bygt á evropeisku CAMS-frágreiðingina.</p>
+    <p class="eyebrow">Pollen · Føroyar</p>
+    <h1>Hvussu nógv<br><em>pollen</em> er í dag?</h1>
+    <p class="sub">Mett nøgdir av gras- og bjarkarpolleni komandi dagarnar, grundað á evropeisku CAMS-veðurforsøgnina.</p>
   </header>
 
   <div class="tabs" id="tabs">
@@ -140,38 +140,38 @@
   </section>
 
   <section class="fc">
-    <h2>Frágreiðing — 4 dagar</h2>
-    <div id="rows"><div class="loading">Innlesur dátu…</div></div>
+    <h2>Forsøgn – 4 dagar</h2>
+    <div id="rows"><div class="loading">Lesur dáturnar…</div></div>
   </section>
 
   <section class="fc season" id="season-card">
-    <h2>Yvir árstíðina</h2>
-    <div id="chart-wrap"><div class="loading">Innlesur søgu…</div></div>
+    <h2>Yvir tíðarskeiðið</h2>
+    <div id="chart-wrap"><div class="loading">Lesur søguligar dátur…</div></div>
     <p class="chart-legend" id="chart-legend"></p>
   </section>
 
   <div class="note">
-    <p><strong>Hetta er ein mett tal, ikki ein máling.</strong> Í Føroyum er eingin frjógv-máingarstøð, so talini koma úr eini evropeiskari modell (CAMS). Modellin fongar best stórar keldur og flutning við vindi — lokalt føroyskt grasfrjógv kann hann ikki lova at fanga rætt.</p>
-    <p>Brúka talið sum ábending, ikki sum grundarlag fyri viðgerð. Tosa við lækna um alvarligar frjógv-óols.</p>
+    <p><strong>Hetta er ein meting, ikki ein máting.</strong> Í Føroyum er eingin pollenmátistøð, og tí eru tølini grundað á eina evropeiska modellforsøgn (CAMS). Modellið fangar best stórar pollenkeldur og flutning við vindinum, men kann ikki tryggja, at staðbundið føroyskt graspollen verður mett rætt.</p>
+    <p>Brúka tølini sum eina ábending, ikki sum grundarlag fyri viðgerð. Hevur tú álvarsligar pollentrupulleikar, eigur tú at seta teg í samband við lækna.</p>
   </div>
 
   <footer>
-    <p>Kelda: <a href="https://atmosphere.copernicus.eu/" target="_blank" rel="noopener">Copernicus Atmosphere Monitoring Service (CAMS)</a>. Innaheldur endurgjørt Copernicus-tænastu-dátu.</p>
+    <p>Kelda: <a href="https://atmosphere.copernicus.eu/" target="_blank" rel="noopener">Copernicus Atmosphere Monitoring Service (CAMS)</a>. Inniheldur tillagað dátutilfar frá Copernicus.</p>
     <p class="stamp" id="stamp"></p>
   </footer>
 </div>
 
 <script>
-const WEEKDAY_FO = ["sunnu","mána","týs","miku","hós","frí","leygar"];
-const LEVEL_INDEX = {"eingin":0,"lágt":1,"moderat":2,"høgt":3,"sera høgt":4,"ókent":0};
+const WEEKDAY_FO = ["sunnudagur","mánadagur","týsdagur","mikudagur","hósdagur","fríggjadagur","leygardagur"];
+const LEVEL_INDEX = {"eingin":0,"lágt":1,"miðal":2,"høgt":3,"sera høgt":4,"ókent":0};
 let DATA = null, HIST = null, current = "gras";
-const THRESH = {gras:30, bjork:100}; // moderat-mark (frjókorn/m³)
+const THRESH = {gras:30, bjork:100}; // miðal-mark (pollenkorn/m³)
 
 function fmtDay(iso, i){
   const d = new Date(iso+"T00:00:00Z");
   if(i===0) return "í dag";
   if(i===1) return "í morgin";
-  return WEEKDAY_FO[d.getUTCDay()]+"dagur";
+  return WEEKDAY_FO[d.getUTCDay()];
 }
 function dots(idx, el){
   el.innerHTML="";
@@ -185,7 +185,7 @@ function render(){
   const arr = DATA.forecast[current];
   const rows = document.getElementById("rows");
   if(!arr || !arr.length){
-    rows.innerHTML='<div class="error">Eingin dátu tøk fyri hesa frjógv-slag beint nú.</div>';
+    rows.innerHTML='<div class="error">Ongar dátur eru tøkar fyri hesa pollensløgina í løtuni.</div>';
     document.getElementById("today-lvl").textContent="—";
     document.getElementById("tmr-lvl").textContent="—";
     document.getElementById("today-val").textContent="";
@@ -199,11 +199,11 @@ function render(){
   const i0=LEVEL_INDEX[t0.level.fo]??0, i1=LEVEL_INDEX[t1.level.fo]??0;
   document.getElementById("today-lvl").textContent=t0.level.fo;
   document.getElementById("today-lvl").style.color = i0>=3?"var(--clay)":"var(--moss-deep)";
-  document.getElementById("today-val").textContent=t0.peak+" frjókorn/m³";
+  document.getElementById("today-val").textContent=t0.peak+" pollenkorn/m³";
   dots(i0,document.getElementById("today-dots"));
   document.getElementById("tmr-lvl").textContent=t1.level.fo;
   document.getElementById("tmr-lvl").style.color = i1>=3?"var(--clay)":"var(--moss-deep)";
-  document.getElementById("tmr-val").textContent=t1.peak+" frjókorn/m³";
+  document.getElementById("tmr-val").textContent=t1.peak+" pollenkorn/m³";
   dots(i1,document.getElementById("tmr-dots"));
 
   // rows
@@ -230,7 +230,7 @@ function drawChart(){
   card.style.display="";
   const days=HIST.days.filter(d=>d[current]!=null);
   if(days.length<2){
-    wrap.innerHTML='<div class="error">Ov lítið søga enn fyri hetta slag. Kemur við tíðini.</div>';
+    wrap.innerHTML='<div class="error">Enn eru ov fá søgulig data fyri hesa pollensløgina. Hetta verður betri við tíðini.</div>';
     document.getElementById("chart-legend").textContent="";
     return;
   }
@@ -254,7 +254,7 @@ function drawChart(){
   // threshold line
   const th=THRESH[current];
   const thEl=th<maxV?`<line class="thresh" x1="${padL}" y1="${y(th)}" x2="${W-padR}" y2="${y(th)}"/>
-    <text class="thresh-lbl" x="${W-padR}" y="${y(th)-4}" text-anchor="end">moderat</text>`:"";
+    <text class="thresh-lbl" x="${W-padR}" y="${y(th)-4}" text-anchor="end">miðal</text>`:"";
 
   // x labels: first, middle, last dates
   const fmt=iso=>{const d=new Date(iso+"T00:00:00Z");
@@ -263,7 +263,7 @@ function drawChart(){
   let xlab="";
   xi.forEach(i=>{xlab+=`<text class="axis-lbl" x="${x(i)}" y="${H-6}" text-anchor="middle">${fmt(days[i].date)}</text>`;});
 
-  wrap.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Frjógv yvir árstíðina">
+  wrap.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Pollen yvir tíðarskeiðið">
     ${grid}${thEl}
     <path class="area-fill" d="${area}"/>
     <path class="area-line" d="${line}"/>
@@ -271,8 +271,8 @@ function drawChart(){
   </svg>`;
   const peak=Math.max(...vals);
   document.getElementById("chart-legend").innerHTML=
-    `${days.length} dagar · hægsti dagur ${peak.toFixed(1)} frjókorn/m³. `+
-    `Reyða brotalinjan vísir <b>moderat</b>-markið.`;
+    `${days.length} dagar · hægsti dagur ${peak.toFixed(1)} pollenkorn/m³. `+
+    `Reyða strikalinjan vísir markið fyri <b>miðal</b> pollenstøði.`;
 }
 function boot(data){
   DATA=data;
@@ -293,7 +293,7 @@ fetch("data/history.json",{cache:"no-store"})
     fetch("data/pollen.json",{cache:"no-store"})
       .then(r=>r.json()).then(boot)
       .catch(()=>{document.getElementById("rows").innerHTML=
-        '<div class="error">Fekk ikki lisið dátuna. Royn aftur eftir eina løtu.</div>';});
+        '<div class="error">Dáturnar kundu ikki lesast. Royn aftur um eina løtu.</div>';});
   });
 </script>
 </body>
