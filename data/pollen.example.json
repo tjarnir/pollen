@@ -1,0 +1,21 @@
+{
+  "updated": "2026-07-17T10:04:11Z",
+  "source": "Copernicus Atmosphere Monitoring Service (CAMS)",
+  "note_fo": "Ókalibrerað modell-mett. Eingin jarðstøð í Føroyum.",
+  "note_en": "Uncalibrated model estimate. No ground station in the Faroe Islands.",
+  "area": {"north": 62.5, "west": -7.8, "south": 61.2, "east": -6.1},
+  "forecast": {
+    "gras": [
+      {"date":"2026-07-17","peak":42.5,"level":{"fo":"moderat","en":"Moderate"}},
+      {"date":"2026-07-18","peak":68.2,"level":{"fo":"høgt","en":"High"}},
+      {"date":"2026-07-19","peak":23.1,"level":{"fo":"lágt","en":"Low"}},
+      {"date":"2026-07-20","peak":9.4,"level":{"fo":"lágt","en":"Low"}}
+    ],
+    "bjork": [
+      {"date":"2026-07-17","peak":2.1,"level":{"fo":"lágt","en":"Low"}},
+      {"date":"2026-07-18","peak":0.0,"level":{"fo":"eingin","en":"None"}},
+      {"date":"2026-07-19","peak":0.3,"level":{"fo":"lágt","en":"Low"}},
+      {"date":"2026-07-20","peak":0.0,"level":{"fo":"eingin","en":"None"}}
+    ]
+  }
+}

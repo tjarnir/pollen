@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="fo">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Frjógv í Føroyum</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f3f5ee;
+    --ink:#20291f;
+    --moss:#5c7a4a;
+    --moss-deep:#3a5230;
+    --haze:#c7d2c0;
+    --clay:#c66b47;
+    --line:#c2ccba;
+    --card:#fbfcf8;
+    --shadow:0 1px 2px rgba(40,55,35,.06),0 8px 28px rgba(40,55,35,.07);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:Inter,system-ui,sans-serif;line-height:1.5;
+    padding:clamp(20px,5vw,64px) clamp(16px,5vw,48px);
+  }
+  .wrap{max-width:760px;margin:0 auto}
+
+  header{margin-bottom:clamp(28px,6vw,52px)}
+  .eyebrow{
+    font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--moss);font-weight:600;margin:0 0 12px;
+  }
+  h1{
+    font-family:Fraunces,serif;font-weight:900;
+    font-size:clamp(2.6rem,10vw,4.6rem);line-height:.94;
+    letter-spacing:-.02em;margin:0;color:var(--moss-deep);
+  }
+  h1 em{font-style:italic;font-weight:400;color:var(--clay)}
+  .sub{margin:16px 0 0;font-size:1.02rem;max-width:44ch;color:#3f4a3b}
+
+  /* Today card */
+  .today{margin:clamp(28px,6vw,44px) 0}
+  .today-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:520px){.today-grid{grid-template-columns:1fr}}
+  .gauge{
+    background:var(--card);border:1px solid var(--line);border-radius:18px;
+    padding:22px 22px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+  }
+  .gauge h2{
+    font-family:Inter;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;
+    font-weight:600;color:var(--moss);margin:0 0 14px;
+  }
+  .gauge .lvl{
+    font-family:Fraunces,serif;font-weight:900;font-size:2.5rem;line-height:1;
+    margin:0;letter-spacing:-.01em;
+  }
+  .gauge .val{font-size:.86rem;color:#5b665556;margin:8px 0 0;color:#66715f}
+  .dots{display:flex;gap:6px;margin-top:16px}
+  .dot{height:8px;flex:1;border-radius:99px;background:var(--haze)}
+  .dot.on{background:var(--moss)}
+  .dot.on.hi{background:var(--clay)}
+
+  /* Forecast strip */
+  .fc{margin-top:14px;background:var(--card);border:1px solid var(--line);
+    border-radius:18px;padding:20px 22px;box-shadow:var(--shadow)}
+  .fc h2{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;
+    font-weight:600;color:var(--moss);margin:0 0 16px}
+  .row{display:flex;align-items:center;gap:14px;padding:9px 0;border-top:1px solid #eef1e9}
+  .row:first-of-type{border-top:0}
+  .row .day{width:64px;font-weight:600;font-size:.9rem;text-transform:capitalize}
+  .bar-track{flex:1;height:22px;border-radius:7px;background:#eef1e9;position:relative;overflow:hidden}
+  .bar-fill{height:100%;border-radius:7px;background:linear-gradient(90deg,var(--moss),var(--moss-deep))}
+  .bar-fill.hi{background:linear-gradient(90deg,#d98a5f,var(--clay))}
+  .row .tag{width:78px;text-align:right;font-size:.82rem;color:#66715f}
+
+  .tabs{display:inline-flex;background:#e7ece1;border-radius:11px;padding:4px;margin-bottom:6px;gap:2px}
+  .tab{border:0;background:transparent;font-family:Inter;font-size:.85rem;font-weight:600;
+    color:#66715f;padding:7px 16px;border-radius:8px;cursor:pointer}
+  .tab.active{background:var(--card);color:var(--moss-deep);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+
+  /* Disclaimer — deliberately visible, part of the design */
+  .note{
+    margin-top:clamp(28px,6vw,44px);border-left:3px solid var(--clay);
+    padding:2px 0 2px 18px;
+  }
+  .note p{margin:0 0 8px;font-size:.9rem;color:#4a5545}
+  .note strong{color:var(--moss-deep)}
+
+  footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);
+    font-size:.8rem;color:#7a8474}
+  footer a{color:var(--moss)}
+  .stamp{font-variant-numeric:tabular-nums}
+
+  .loading,.error{padding:40px 0;color:#66715f}
+
+  .season{margin-top:14px}
+  #chart-wrap{width:100%}
+  #chart-wrap svg{width:100%;height:auto;display:block;overflow:visible}
+  .grid-line{stroke:#e4e9dd;stroke-width:1}
+  .thresh{stroke:var(--clay);stroke-width:1;stroke-dasharray:3 4;opacity:.65}
+  .thresh-lbl{fill:var(--clay);font-size:10px;font-family:Inter;opacity:.85}
+  .axis-lbl{fill:#8a9382;font-size:10.5px;font-family:Inter}
+  .area-fill{fill:var(--moss);opacity:.13}
+  .area-line{fill:none;stroke:var(--moss-deep);stroke-width:2;stroke-linejoin:round}
+  .chart-legend{margin:14px 0 0;font-size:.82rem;color:#7a8474}
+  .chart-legend b{color:var(--clay);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Frjógv · Pollen · Føroyar</p>
+    <h1>Hvussu nógv<br><em>frjógv</em> í dag?</h1>
+    <p class="sub">Mett gras- og bjørkufrjógv fyri komandi dagar, bygt á evropeisku CAMS-frágreiðingina.</p>
+  </header>
+
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-t="gras">Gras</button>
+    <button class="tab" data-t="bjork">Bjørk</button>
+  </div>
+
+  <section class="today">
+    <div class="today-grid">
+      <div class="gauge" id="gauge-today">
+        <h2>Í dag</h2>
+        <p class="lvl" id="today-lvl">—</p>
+        <p class="val" id="today-val"></p>
+        <div class="dots" id="today-dots"></div>
+      </div>
+      <div class="gauge" id="gauge-tomorrow">
+        <h2>Í morgin</h2>
+        <p class="lvl" id="tmr-lvl">—</p>
+        <p class="val" id="tmr-val"></p>
+        <div class="dots" id="tmr-dots"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="fc">
+    <h2>Frágreiðing — 4 dagar</h2>
+    <div id="rows"><div class="loading">Innlesur dátu…</div></div>
+  </section>
+
+  <section class="fc season" id="season-card">
+    <h2>Yvir árstíðina</h2>
+    <div id="chart-wrap"><div class="loading">Innlesur søgu…</div></div>
+    <p class="chart-legend" id="chart-legend"></p>
+  </section>
+
+  <div class="note">
+    <p><strong>Hetta er ein mett tal, ikki ein máling.</strong> Í Føroyum er eingin frjógv-máingarstøð, so talini koma úr eini evropeiskari modell (CAMS). Modellin fongar best stórar keldur og flutning við vindi — lokalt føroyskt grasfrjógv kann hann ikki lova at fanga rætt.</p>
+    <p>Brúka talið sum ábending, ikki sum grundarlag fyri viðgerð. Tosa við lækna um alvarligar frjógv-óols.</p>
+  </div>
+
+  <footer>
+    <p>Kelda: <a href="https://atmosphere.copernicus.eu/" target="_blank" rel="noopener">Copernicus Atmosphere Monitoring Service (CAMS)</a>. Innaheldur endurgjørt Copernicus-tænastu-dátu.</p>
+    <p class="stamp" id="stamp"></p>
+  </footer>
+</div>
+
+<script>
+const WEEKDAY_FO = ["sunnu","mána","týs","miku","hós","frí","leygar"];
+const LEVEL_INDEX = {"eingin":0,"lágt":1,"moderat":2,"høgt":3,"sera høgt":4,"ókent":0};
+let DATA = null, HIST = null, current = "gras";
+const THRESH = {gras:30, bjork:100}; // moderat-mark (frjókorn/m³)
+
+function fmtDay(iso, i){
+  const d = new Date(iso+"T00:00:00Z");
+  if(i===0) return "í dag";
+  if(i===1) return "í morgin";
+  return WEEKDAY_FO[d.getUTCDay()]+"dagur";
+}
+function dots(idx, el){
+  el.innerHTML="";
+  for(let i=0;i<5;i++){
+    const s=document.createElement("div");
+    s.className="dot"+(i<idx?" on":"")+(idx>=3&&i<idx?" hi":"");
+    el.appendChild(s);
+  }
+}
+function render(){
+  const arr = DATA.forecast[current];
+  const rows = document.getElementById("rows");
+  if(!arr || !arr.length){
+    rows.innerHTML='<div class="error">Eingin dátu tøk fyri hesa frjógv-slag beint nú.</div>';
+    document.getElementById("today-lvl").textContent="—";
+    document.getElementById("tmr-lvl").textContent="—";
+    document.getElementById("today-val").textContent="";
+    document.getElementById("tmr-val").textContent="";
+    dots(0,document.getElementById("today-dots"));
+    dots(0,document.getElementById("tmr-dots"));
+    return;
+  }
+  // today + tomorrow gauges
+  const t0=arr[0], t1=arr[1]||arr[0];
+  const i0=LEVEL_INDEX[t0.level.fo]??0, i1=LEVEL_INDEX[t1.level.fo]??0;
+  document.getElementById("today-lvl").textContent=t0.level.fo;
+  document.getElementById("today-lvl").style.color = i0>=3?"var(--clay)":"var(--moss-deep)";
+  document.getElementById("today-val").textContent=t0.peak+" frjókorn/m³";
+  dots(i0,document.getElementById("today-dots"));
+  document.getElementById("tmr-lvl").textContent=t1.level.fo;
+  document.getElementById("tmr-lvl").style.color = i1>=3?"var(--clay)":"var(--moss-deep)";
+  document.getElementById("tmr-val").textContent=t1.peak+" frjókorn/m³";
+  dots(i1,document.getElementById("tmr-dots"));
+
+  // rows
+  const maxPeak = Math.max(...arr.map(d=>d.peak), 30);
+  rows.innerHTML="";
+  arr.slice(0,4).forEach((d,i)=>{
+    const idx=LEVEL_INDEX[d.level.fo]??0;
+    const w=Math.max(4, Math.min(100, (d.peak/maxPeak)*100));
+    const row=document.createElement("div");
+    row.className="row";
+    row.innerHTML=`<span class="day">${fmtDay(d.date,i)}</span>
+      <span class="bar-track"><span class="bar-fill${idx>=3?' hi':''}" style="width:${w}%"></span></span>
+      <span class="tag">${d.level.fo}</span>`;
+    rows.appendChild(row);
+  });
+  drawChart();
+}
+function drawChart(){
+  const wrap=document.getElementById("chart-wrap");
+  const card=document.getElementById("season-card");
+  if(!HIST || !HIST.days || HIST.days.length<2){
+    card.style.display="none"; return;
+  }
+  card.style.display="";
+  const days=HIST.days.filter(d=>d[current]!=null);
+  if(days.length<2){
+    wrap.innerHTML='<div class="error">Ov lítið søga enn fyri hetta slag. Kemur við tíðini.</div>';
+    document.getElementById("chart-legend").textContent="";
+    return;
+  }
+  const W=680,H=200,padL=34,padR=12,padT=14,padB=26;
+  const vals=days.map(d=>d[current]);
+  const maxV=Math.max(THRESH[current]*1.3, ...vals);
+  const x=i=>padL+(i/(days.length-1))*(W-padL-padR);
+  const y=v=>padT+(1-v/maxV)*(H-padT-padB);
+
+  let area=`M ${x(0)} ${y(0)} `;
+  days.forEach((d,i)=>area+=`L ${x(i)} ${y(d[current])} `);
+  area+=`L ${x(days.length-1)} ${y(0)} Z`;
+  let line="M "+days.map((d,i)=>`${x(i)} ${y(d[current])}`).join(" L ");
+
+  // y-gridlines
+  const ticks=[0,Math.round(maxV/2),Math.round(maxV)];
+  let grid="";
+  ticks.forEach(t=>{grid+=`<line class="grid-line" x1="${padL}" y1="${y(t)}" x2="${W-padR}" y2="${y(t)}"/>
+    <text class="axis-lbl" x="${padL-6}" y="${y(t)+3}" text-anchor="end">${t}</text>`;});
+
+  // threshold line
+  const th=THRESH[current];
+  const thEl=th<maxV?`<line class="thresh" x1="${padL}" y1="${y(th)}" x2="${W-padR}" y2="${y(th)}"/>
+    <text class="thresh-lbl" x="${W-padR}" y="${y(th)-4}" text-anchor="end">moderat</text>`:"";
+
+  // x labels: first, middle, last dates
+  const fmt=iso=>{const d=new Date(iso+"T00:00:00Z");
+    return d.getUTCDate()+"/"+(d.getUTCMonth()+1);};
+  const xi=[0,Math.floor((days.length-1)/2),days.length-1];
+  let xlab="";
+  xi.forEach(i=>{xlab+=`<text class="axis-lbl" x="${x(i)}" y="${H-6}" text-anchor="middle">${fmt(days[i].date)}</text>`;});
+
+  wrap.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Frjógv yvir árstíðina">
+    ${grid}${thEl}
+    <path class="area-fill" d="${area}"/>
+    <path class="area-line" d="${line}"/>
+    ${xlab}
+  </svg>`;
+  const peak=Math.max(...vals);
+  document.getElementById("chart-legend").innerHTML=
+    `${days.length} dagar · hægsti dagur ${peak.toFixed(1)} frjókorn/m³. `+
+    `Reyða brotalinjan vísir <b>moderat</b>-markið.`;
+}
+function boot(data){
+  DATA=data;
+  const s=new Date(data.updated);
+  document.getElementById("stamp").textContent =
+    "Dagført "+s.toISOString().slice(0,16).replace("T"," ")+" UTC";
+  render();
+}
+document.getElementById("tabs").addEventListener("click",e=>{
+  const b=e.target.closest(".tab"); if(!b)return;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  b.classList.add("active"); current=b.dataset.t; render();
+});
+// Søgu er valfrí — feilar hon, vísa vit bara ikki grafin.
+fetch("data/history.json",{cache:"no-store"})
+  .then(r=>r.ok?r.json():null).then(h=>{HIST=h;}).catch(()=>{HIST=null;})
+  .finally(()=>{
+    fetch("data/pollen.json",{cache:"no-store"})
+      .then(r=>r.json()).then(boot)
+      .catch(()=>{document.getElementById("rows").innerHTML=
+        '<div class="error">Fekk ikki lisið dátuna. Royn aftur eftir eina løtu.</div>';});
+  });
+</script>
+</body>
+</html>
