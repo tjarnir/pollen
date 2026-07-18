@@ -207,11 +207,15 @@ function render(){
   dots(i1,document.getElementById("tmr-dots"));
 
   // rows
-  const maxPeak = Math.max(...arr.map(d=>d.peak), 30);
+  // Fast skala fyri hvørja pollensløgina, so bjálkin altíð sæst,
+  // eisini tá ið tølini eru lág. Skalan svarar til "sera høgt"-markið.
+  const FULL = {gras:150, bjork:1500};
+  const fullScale = FULL[current] || 150;
   rows.innerHTML="";
   arr.slice(0,4).forEach((d,i)=>{
     const idx=LEVEL_INDEX[d.level.fo]??0;
-    const w=Math.max(4, Math.min(100, (d.peak/maxPeak)*100));
+    // Minsta breidd 8% so ein lág dagur framvegis sæst sum ein lítil bjálki.
+    const w = d.peak <= 0 ? 3 : Math.max(8, Math.min(100, (d.peak/fullScale)*100));
     const row=document.createElement("div");
     row.className="row";
     row.innerHTML=`<span class="day">${fmtDay(d.date,i)}</span>
