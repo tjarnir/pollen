@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-20T14:37:13Z",
+  "updated": "2026-07-21T11:50:47Z",
   "source": "Copernicus Atmosphere Monitoring Service (CAMS)",
   "note_fo": "Ókalibrerað modell-mett. Eingin jarðstøð í Føroyum.",
   "note_en": "Uncalibrated model estimate. No ground station in the Faroe Islands.",
@@ -12,16 +12,8 @@
   "forecast": {
     "gras": [
       {
-        "date": "2026-07-20",
-        "peak": 2.05,
-        "level": {
-          "fo": "lágt",
-          "en": "Low"
-        }
-      },
-      {
         "date": "2026-07-21",
-        "peak": 1.99,
+        "peak": 3.07,
         "level": {
           "fo": "lágt",
           "en": "Low"
@@ -29,7 +21,7 @@
       },
       {
         "date": "2026-07-22",
-        "peak": 1.78,
+        "peak": 1.43,
         "level": {
           "fo": "lágt",
           "en": "Low"
@@ -37,7 +29,7 @@
       },
       {
         "date": "2026-07-23",
-        "peak": 0.77,
+        "peak": 0.81,
         "level": {
           "fo": "eingin",
           "en": "None"
@@ -45,7 +37,15 @@
       },
       {
         "date": "2026-07-24",
-        "peak": 0.0,
+        "peak": 1.88,
+        "level": {
+          "fo": "lágt",
+          "en": "Low"
+        }
+      },
+      {
+        "date": "2026-07-25",
+        "peak": 0.06,
         "level": {
           "fo": "eingin",
           "en": "None"
@@ -54,14 +54,6 @@
     ],
     "bjork": [
       {
-        "date": "2026-07-20",
-        "peak": 0.0,
-        "level": {
-          "fo": "eingin",
-          "en": "None"
-        }
-      },
-      {
         "date": "2026-07-21",
         "peak": 0.0,
         "level": {
@@ -87,6 +79,14 @@
       },
       {
         "date": "2026-07-24",
+        "peak": 0.0,
+        "level": {
+          "fo": "eingin",
+          "en": "None"
+        }
+      },
+      {
+        "date": "2026-07-25",
         "peak": 0.0,
         "level": {
           "fo": "eingin",
