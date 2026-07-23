@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Heintar gras- og bjørkufrjógv (grass + birch pollen) úr CAMS European
+Heintar graspollen (grass pollen) úr CAMS European
 air quality forecasts fyri Føroyar og skrivar eina reina JSON-fílu.
 
 Data: Copernicus Atmosphere Monitoring Service (CAMS), ensemble median.
-Eind: frjókorn/m3 (grains/m3) við jørðina.
+Eind: pollenkorn/m3 (grains/m3) við jørðina.
 
 VÍÐMERKING: CAMS hevur onga jarðstøð í Føroyum. Talini eru ókalibrerað
 modell-mett, ikki máld. Sí www (ansvarsfráskriving) á vevsíðuni.
@@ -29,11 +29,9 @@ AREA = [62.5, -7.8, 61.2, -6.1]
 
 VARIABLES = {
     "grass_pollen": "gras",
-    "birch_pollen": "bjork",
 }
 
 # Frágreiðing um stig (grains/m3) fyri gras. Vanligar evropeiskar mørk.
-# Birch hevur aðrar mørk, men vit brúka somu skala fyri einfaldni í fyrstu útgávu.
 # Kelda: vanligar EAACI/EAN-tær mørk fyri gras.
 GRASS_LEVELS = [
     (0, 1, "eingin", "None"),
@@ -41,13 +39,6 @@ GRASS_LEVELS = [
     (30, 50, "miðal", "Moderate"),
     (50, 150, "høgt", "High"),
     (150, float("inf"), "sera høgt", "Very high"),
-]
-BIRCH_LEVELS = [
-    (0, 1, "eingin", "None"),
-    (1, 100, "lágt", "Low"),
-    (100, 300, "miðal", "Moderate"),
-    (300, 1500, "høgt", "High"),
-    (1500, float("inf"), "sera høgt", "Very high"),
 ]
 
 
@@ -101,7 +92,6 @@ def process(nc_path, base_date):
 
     varmap = {
         "grass_pollen": find_var(["gr_pol", "grass", "gpg"]),
-        "birch_pollen": find_var(["bir", "bpg", "birch"]),
     }
 
     # Tíðar-koordinat kann eita 'time' ella 'forecast_period'/'leadtime'.
@@ -144,7 +134,7 @@ def process(nc_path, base_date):
                 continue
             daily.setdefault(key, []).append(val)
 
-        table = GRASS_LEVELS if var_key == "grass_pollen" else BIRCH_LEVELS
+        table = GRASS_LEVELS
         days = []
         for day_key in sorted(daily.keys()):
             peak = max(daily[day_key])
