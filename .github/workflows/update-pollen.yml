@@ -1,4 +1,4 @@
-name: Dagliga frjógv-dátu
+name: Dagliga pollen-dátu
 
 on:
   schedule:
@@ -22,7 +22,7 @@ jobs:
       - name: Installera pakkar
         run: pip install "cdsapi>=0.7" xarray netcdf4 numpy
 
-      - name: Heinta frjógv-dátu
+      - name: Heinta pollen-dátu
         env:
           CDSAPI_URL: https://ads.atmosphere.copernicus.eu/api
           CDSAPI_KEY: ${{ secrets.CDSAPI_KEY }}
@@ -36,6 +36,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "Eingin broyting"
           else
-            git commit -m "Uppdatera frjógv-dátu $(date -u +%Y-%m-%d)"
+            git commit -m "Uppdatera pollen-dátu $(date -u +%Y-%m-%d)"
             git push
           fi
