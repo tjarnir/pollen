@@ -3,7 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Frjógv í Føroyum</title>
+<title>Pollen í Føroyum</title>
+<meta name="description" content="Mett graspollen í Føroyum komandi dagarnar, grundað á evropeisku CAMS-forsøgnina. Ein meting, ikki ein máting.">
+<meta property="og:title" content="Pollen í Føroyum">
+<meta property="og:description" content="Mett graspollen í Føroyum komandi dagarnar. Ein meting, ikki ein máting.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="fo_FO">
+<meta name="twitter:card" content="summary">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -70,16 +76,19 @@
     font-weight:600;color:var(--moss);margin:0 0 16px}
   .row{display:flex;align-items:center;gap:14px;padding:9px 0;border-top:1px solid #eef1e9}
   .row:first-of-type{border-top:0}
-  .row .day{width:64px;font-weight:600;font-size:.9rem;text-transform:capitalize}
-  .bar-track{flex:1;height:22px;border-radius:7px;background:#eef1e9;position:relative;overflow:hidden}
-  .bar-fill{height:100%;border-radius:7px;background:linear-gradient(90deg,var(--moss),var(--moss-deep))}
+  .row .day{width:104px;flex:none;font-weight:600;font-size:.88rem;white-space:nowrap;text-transform:capitalize}
+  .bar-track{flex:1;height:22px;border-radius:7px;background:#eef1e9;position:relative;overflow:hidden;display:block}
+  .bar-fill{display:block;height:100%;min-width:6px;border-radius:7px;background:linear-gradient(90deg,var(--moss),var(--moss-deep))}
   .bar-fill.hi{background:linear-gradient(90deg,#d98a5f,var(--clay))}
-  .row .tag{width:78px;text-align:right;font-size:.82rem;color:#66715f}
-
-  .tabs{display:inline-flex;background:#e7ece1;border-radius:11px;padding:4px;margin-bottom:6px;gap:2px}
-  .tab{border:0;background:transparent;font-family:Inter;font-size:.85rem;font-weight:600;
-    color:#66715f;padding:7px 16px;border-radius:8px;cursor:pointer}
-  .tab.active{background:var(--card);color:var(--moss-deep);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+  .row .tag{width:78px;flex:none;text-align:right;font-size:.82rem;color:#66715f}
+  .d-short{display:none}
+  @media(max-width:520px){
+    .row{gap:10px}
+    .row .day{width:62px;font-size:.82rem}
+    .row .tag{width:62px;font-size:.76rem}
+    .d-full{display:none}
+    .d-short{display:inline}
+  }
 
   /* Disclaimer — deliberately visible, part of the design */
   .note{
@@ -114,13 +123,8 @@
   <header>
     <p class="eyebrow">Pollen · Føroyar</p>
     <h1>Hvussu nógv<br><em>pollen</em> er í dag?</h1>
-    <p class="sub">Mett nøgdir av gras- og bjarkarpolleni komandi dagarnar, grundað á evropeisku CAMS-veðurforsøgnina.</p>
+    <p class="sub">Mett nøgdir av graspolleni komandi dagarnar, grundað á evropeisku CAMS-veðurforsøgnina.</p>
   </header>
-
-  <div class="tabs" id="tabs">
-    <button class="tab active" data-t="gras">Gras</button>
-    <button class="tab" data-t="bjork">Bjørk</button>
-  </div>
 
   <section class="today">
     <div class="today-grid">
@@ -163,15 +167,16 @@
 
 <script>
 const WEEKDAY_FO = ["sunnudagur","mánadagur","týsdagur","mikudagur","hósdagur","fríggjadagur","leygardagur"];
+const WEEKDAY_FO_SHORT = ["sun.","mán.","týs.","mik.","hós.","frí.","ley."];
 const LEVEL_INDEX = {"eingin":0,"lágt":1,"miðal":2,"høgt":3,"sera høgt":4,"ókent":0};
 let DATA = null, HIST = null, current = "gras";
-const THRESH = {gras:30, bjork:100}; // miðal-mark (pollenkorn/m³)
+const THRESH = 30; // miðal-mark fyri gras (pollenkorn/m³)
 
 function fmtDay(iso, i){
   const d = new Date(iso+"T00:00:00Z");
-  if(i===0) return "í dag";
-  if(i===1) return "í morgin";
-  return WEEKDAY_FO[d.getUTCDay()];
+  if(i===0) return {full:"í dag", short:"í dag"};
+  if(i===1) return {full:"í morgin", short:"í morgin"};
+  return {full:WEEKDAY_FO[d.getUTCDay()], short:WEEKDAY_FO_SHORT[d.getUTCDay()]};
 }
 function dots(idx, el){
   el.innerHTML="";
@@ -209,8 +214,7 @@ function render(){
   // rows
   // Fast skala fyri hvørja pollensløgina, so bjálkin altíð sæst,
   // eisini tá ið tølini eru lág. Skalan svarar til "sera høgt"-markið.
-  const FULL = {gras:150, bjork:1500};
-  const fullScale = FULL[current] || 150;
+  const fullScale = 150; // "sera høgt"-markið fyri gras
   rows.innerHTML="";
   arr.slice(0,4).forEach((d,i)=>{
     const idx=LEVEL_INDEX[d.level.fo]??0;
@@ -218,7 +222,8 @@ function render(){
     const w = d.peak <= 0 ? 3 : Math.max(8, Math.min(100, (d.peak/fullScale)*100));
     const row=document.createElement("div");
     row.className="row";
-    row.innerHTML=`<span class="day">${fmtDay(d.date,i)}</span>
+    const dn = fmtDay(d.date,i);
+    row.innerHTML=`<span class="day"><span class="d-full">${dn.full}</span><span class="d-short">${dn.short}</span></span>
       <span class="bar-track"><span class="bar-fill${idx>=3?' hi':''}" style="width:${w}%"></span></span>
       <span class="tag">${d.level.fo}</span>`;
     rows.appendChild(row);
@@ -240,7 +245,7 @@ function drawChart(){
   }
   const W=680,H=200,padL=34,padR=12,padT=14,padB=26;
   const vals=days.map(d=>d[current]);
-  const maxV=Math.max(THRESH[current]*1.3, ...vals);
+  const maxV=Math.max(THRESH*1.3, ...vals);
   const x=i=>padL+(i/(days.length-1))*(W-padL-padR);
   const y=v=>padT+(1-v/maxV)*(H-padT-padB);
 
@@ -256,7 +261,7 @@ function drawChart(){
     <text class="axis-lbl" x="${padL-6}" y="${y(t)+3}" text-anchor="end">${t}</text>`;});
 
   // threshold line
-  const th=THRESH[current];
+  const th=THRESH;
   const thEl=th<maxV?`<line class="thresh" x1="${padL}" y1="${y(th)}" x2="${W-padR}" y2="${y(th)}"/>
     <text class="thresh-lbl" x="${W-padR}" y="${y(th)-4}" text-anchor="end">miðal</text>`:"";
 
@@ -285,11 +290,6 @@ function boot(data){
     "Dagført "+s.toISOString().slice(0,16).replace("T"," ")+" UTC";
   render();
 }
-document.getElementById("tabs").addEventListener("click",e=>{
-  const b=e.target.closest(".tab"); if(!b)return;
-  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-  b.classList.add("active"); current=b.dataset.t; render();
-});
 // Søgu er valfrí — feilar hon, vísa vit bara ikki grafin.
 fetch("data/history.json",{cache:"no-store"})
   .then(r=>r.ok?r.json():null).then(h=>{HIST=h;}).catch(()=>{HIST=null;})
