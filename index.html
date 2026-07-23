@@ -116,6 +116,44 @@
   .area-line{fill:none;stroke:var(--moss-deep);stroke-width:2;stroke-linejoin:round}
   .chart-legend{margin:14px 0 0;font-size:.82rem;color:#7a8474}
   .chart-legend b{color:var(--clay);font-weight:600}
+
+  /* Tíðarskeiðs-knøttar */
+  .season-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .season-head h2{margin:0}
+  .ranges{display:inline-flex;background:#e7ece1;border-radius:10px;padding:3px;gap:2px}
+  .rbtn{border:0;background:transparent;font-family:Inter;font-size:.78rem;font-weight:600;
+    color:#66715f;padding:6px 12px;border-radius:7px;cursor:pointer;white-space:nowrap}
+  .rbtn.active{background:var(--card);color:var(--moss-deep);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+  .rbtn:hover:not(.active){color:var(--moss-deep)}
+
+  /* Hovring */
+  #chart-wrap{position:relative}
+  .hover-dot{pointer-events:none}
+  .tip{position:absolute;pointer-events:none;background:var(--moss-deep);color:#f3f5ee;
+    font-size:.76rem;line-height:1.35;padding:7px 10px;border-radius:8px;white-space:nowrap;
+    transform:translate(-50%,-115%);opacity:0;transition:opacity .12s;z-index:5;
+    box-shadow:0 4px 14px rgba(30,45,25,.22)}
+  .tip.on{opacity:1}
+  .tip b{display:block;font-weight:600;font-size:.8rem}
+  .tip span{opacity:.85}
+
+  /* Listi yvir dagar */
+  .list-toggle{margin-top:16px;border:1px solid var(--line);background:transparent;
+    font-family:Inter;font-size:.8rem;font-weight:600;color:var(--moss);
+    padding:8px 14px;border-radius:9px;cursor:pointer}
+  .list-toggle:hover{background:#eef1e9}
+  .daylist{margin-top:14px;border-top:1px solid #eef1e9;max-height:320px;overflow-y:auto}
+  .dl-row{display:flex;align-items:center;gap:12px;padding:8px 2px;border-bottom:1px solid #f0f3ec;font-size:.85rem}
+  .dl-row:last-child{border-bottom:0}
+  .dl-date{width:96px;flex:none;color:#4a5545;font-variant-numeric:tabular-nums}
+  .dl-bar{flex:1;height:8px;border-radius:99px;background:#eef1e9;overflow:hidden}
+  .dl-bar i{display:block;height:100%;border-radius:99px;background:var(--moss);min-width:3px}
+  .dl-bar i.hi{background:var(--clay)}
+  .dl-val{width:104px;flex:none;text-align:right;color:#66715f;font-variant-numeric:tabular-nums}
+  @media(max-width:520px){
+    .dl-date{width:70px;font-size:.8rem}
+    .dl-val{width:84px;font-size:.78rem}
+  }
 </style>
 </head>
 <body>
@@ -149,9 +187,18 @@
   </section>
 
   <section class="fc season" id="season-card">
-    <h2>Yvir tíðarskeiðið</h2>
+    <div class="season-head">
+      <h2>Yvir tíðarskeiðið</h2>
+      <div class="ranges" id="ranges">
+        <button class="rbtn" data-r="7">7 dagar</button>
+        <button class="rbtn active" data-r="30">30 dagar</button>
+        <button class="rbtn" data-r="0">Alt</button>
+      </div>
+    </div>
     <div id="chart-wrap"><div class="loading">Lesur søguligar dátur…</div></div>
     <p class="chart-legend" id="chart-legend"></p>
+    <button class="list-toggle" id="list-toggle" aria-expanded="false">Vís allar dagar</button>
+    <div class="daylist" id="daylist" hidden></div>
   </section>
 
   <div class="note">
@@ -170,6 +217,7 @@ const WEEKDAY_FO = ["sunnudagur","mánadagur","týsdagur","mikudagur","hósdagur
 const WEEKDAY_FO_SHORT = ["sun.","mán.","týs.","mik.","hós.","frí.","ley."];
 const LEVEL_INDEX = {"eingin":0,"lágt":1,"miðal":2,"høgt":3,"sera høgt":4,"ókent":0};
 let DATA = null, HIST = null, current = "gras";
+let RANGE = 30; // dagar í grafinum; 0 = alt
 const THRESH = 30; // miðal-mark fyri gras (pollenkorn/m³)
 
 function fmtDay(iso, i){
@@ -237,16 +285,28 @@ function drawChart(){
     card.style.display="none"; return;
   }
   card.style.display="";
-  const days=HIST.days.filter(d=>d[current]!=null);
-  if(days.length<2){
+  const all=HIST.days.filter(d=>d[current]!=null);
+  if(all.length<2){
     wrap.innerHTML='<div class="error">Enn eru ov fá søgulig data fyri hesa pollensløgina. Hetta verður betri við tíðini.</div>';
     document.getElementById("chart-legend").textContent="";
+    document.getElementById("list-toggle").hidden=true;
     return;
   }
+  document.getElementById("list-toggle").hidden=false;
+
+  // Avmarka til valda tíðarskeiðið (0 = alt)
+  const days = RANGE>0 ? all.slice(-RANGE) : all;
+
+  // Fjal knøttar fyri tíðarskeið, sum vit ikki hava dátu til enn
+  document.querySelectorAll(".rbtn").forEach(b=>{
+    const r=+b.dataset.r;
+    b.style.display = (r>0 && all.length < r*0.6) ? "none" : "";
+  });
+
   const W=680,H=200,padL=34,padR=12,padT=14,padB=26;
   const vals=days.map(d=>d[current]);
   const maxV=Math.max(THRESH*1.3, ...vals);
-  const x=i=>padL+(i/(days.length-1))*(W-padL-padR);
+  const x=i=>days.length===1?padL:padL+(i/(days.length-1))*(W-padL-padR);
   const y=v=>padT+(1-v/maxV)*(H-padT-padB);
 
   let area=`M ${x(0)} ${y(0)} `;
@@ -265,10 +325,10 @@ function drawChart(){
   const thEl=th<maxV?`<line class="thresh" x1="${padL}" y1="${y(th)}" x2="${W-padR}" y2="${y(th)}"/>
     <text class="thresh-lbl" x="${W-padR}" y="${y(th)-4}" text-anchor="end">miðal</text>`:"";
 
-  // x labels: first, middle, last dates
+  // x labels
   const fmt=iso=>{const d=new Date(iso+"T00:00:00Z");
     return d.getUTCDate()+"/"+(d.getUTCMonth()+1);};
-  const xi=[0,Math.floor((days.length-1)/2),days.length-1];
+  const xi=days.length<=2?[0,days.length-1]:[0,Math.floor((days.length-1)/2),days.length-1];
   let xlab="";
   xi.forEach(i=>{xlab+=`<text class="axis-lbl" x="${x(i)}" y="${H-6}" text-anchor="middle">${fmt(days[i].date)}</text>`;});
 
@@ -277,11 +337,81 @@ function drawChart(){
     <path class="area-fill" d="${area}"/>
     <path class="area-line" d="${line}"/>
     ${xlab}
-  </svg>`;
+    <circle class="hover-dot" id="hdot" r="4" fill="var(--moss-deep)" stroke="var(--card)" stroke-width="2" opacity="0"/>
+    <rect id="hitbox" x="${padL}" y="0" width="${W-padL-padR}" height="${H}" fill="transparent"/>
+  </svg><div class="tip" id="tip"></div>`;
+
   const peak=Math.max(...vals);
+  const peakDay=days[vals.indexOf(peak)];
   document.getElementById("chart-legend").innerHTML=
-    `${days.length} dagar · hægsti dagur ${peak.toFixed(1)} pollenkorn/m³. `+
+    `${days.length} dagar · hægsti dagur ${fmtLong(peakDay.date)} við ${peak.toFixed(1)} pollenkorn/m³. `+
     `Reyða strikalinjan vísir markið fyri <b>miðal</b> pollenstøði.`;
+
+  attachHover(days, x, y, W, H, padL, padR);
+  buildList(days);
+}
+
+// Fullur dagsetningur, t.d. "14. juli"
+const MONTHS_FO=["januar","februar","mars","apríl","mai","juni","juli","august","september","oktober","november","desember"];
+function fmtLong(iso){
+  const d=new Date(iso+"T00:00:00Z");
+  return d.getUTCDate()+". "+MONTHS_FO[d.getUTCMonth()];
+}
+function levelFor(v){
+  if(v<1) return "eingin";
+  if(v<30) return "lágt";
+  if(v<50) return "miðal";
+  if(v<150) return "høgt";
+  return "sera høgt";
+}
+
+function attachHover(days,x,y,W,H,padL,padR){
+  const wrap=document.getElementById("chart-wrap");
+  const svg=wrap.querySelector("svg");
+  const hit=document.getElementById("hitbox");
+  const dot=document.getElementById("hdot");
+  const tip=document.getElementById("tip");
+  if(!hit) return;
+
+  function show(ev){
+    const r=svg.getBoundingClientRect();
+    const px=(ev.touches?ev.touches[0].clientX:ev.clientX)-r.left;
+    // umrokna til SVG-koordinat
+    const sx=px/r.width*W;
+    // finn næsta dag
+    let best=0,bd=Infinity;
+    days.forEach((d,i)=>{const dd=Math.abs(x(i)-sx); if(dd<bd){bd=dd;best=i;}});
+    const d=days[best], v=d[current];
+    dot.setAttribute("cx",x(best));
+    dot.setAttribute("cy",y(v));
+    dot.setAttribute("opacity","1");
+    tip.innerHTML=`<b>${fmtLong(d.date)}</b><span>${v.toFixed(1)} pollenkorn/m³ · ${levelFor(v)}</span>`;
+    tip.style.left=(x(best)/W*r.width)+"px";
+    tip.style.top=(y(v)/H*r.height)+"px";
+    tip.classList.add("on");
+  }
+  function hide(){dot.setAttribute("opacity","0");tip.classList.remove("on");}
+
+  hit.addEventListener("mousemove",show);
+  hit.addEventListener("mouseleave",hide);
+  hit.addEventListener("touchstart",e=>{show(e);},{passive:true});
+  hit.addEventListener("touchmove",e=>{show(e);},{passive:true});
+  hit.addEventListener("touchend",hide);
+}
+
+function buildList(days){
+  const el=document.getElementById("daylist");
+  const maxV=Math.max(150,...days.map(d=>d[current]));
+  el.innerHTML=days.slice().reverse().map(d=>{
+    const v=d[current], lv=levelFor(v);
+    const w=Math.max(2,Math.min(100,(v/maxV)*100));
+    const hi=(lv==="høgt"||lv==="sera høgt")?" hi":"";
+    return `<div class="dl-row">
+      <span class="dl-date">${fmtLong(d.date)}</span>
+      <span class="dl-bar"><i class="${hi}" style="width:${w}%"></i></span>
+      <span class="dl-val">${v.toFixed(1)} · ${lv}</span>
+    </div>`;
+  }).join("");
 }
 function boot(data){
   DATA=data;
@@ -290,6 +420,23 @@ function boot(data){
     "Dagført "+s.toISOString().slice(0,16).replace("T"," ")+" UTC";
   render();
 }
+// Tíðarskeiðs-knøttar
+document.getElementById("ranges").addEventListener("click",e=>{
+  const b=e.target.closest(".rbtn"); if(!b) return;
+  document.querySelectorAll(".rbtn").forEach(t=>t.classList.remove("active"));
+  b.classList.add("active");
+  RANGE=+b.dataset.r;
+  drawChart();
+});
+
+// Vís/fjal lista
+document.getElementById("list-toggle").addEventListener("click",e=>{
+  const btn=e.currentTarget, list=document.getElementById("daylist");
+  const open=list.hasAttribute("hidden");
+  if(open){ list.removeAttribute("hidden"); btn.textContent="Fjal dagar"; btn.setAttribute("aria-expanded","true"); }
+  else { list.setAttribute("hidden",""); btn.textContent="Vís allar dagar"; btn.setAttribute("aria-expanded","false"); }
+});
+
 // Søgu er valfrí — feilar hon, vísa vit bara ikki grafin.
 fetch("data/history.json",{cache:"no-store"})
   .then(r=>r.ok?r.json():null).then(h=>{HIST=h;}).catch(()=>{HIST=null;})
