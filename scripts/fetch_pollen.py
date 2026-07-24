@@ -127,21 +127,26 @@ def process(nc_path, base_date):
 
         daily = {}
         for i, lt in enumerate(leadtimes):
-            day = base_date + dt.timedelta(hours=lt)
-            key = day.date().isoformat()
+            stamp = base_date + dt.timedelta(hours=lt)
+            key = stamp.date().isoformat()
             val = float(per_time.isel({time_dim: i}).values)
             if np.isnan(val):
                 continue
-            daily.setdefault(key, []).append(val)
+            daily.setdefault(key, []).append({
+                "hour": stamp.hour,
+                "value": round(val, 2),
+            })
 
         table = GRASS_LEVELS
         days = []
         for day_key in sorted(daily.keys()):
-            peak = max(daily[day_key])
+            hours = sorted(daily[day_key], key=lambda h: h["hour"])
+            peak = max(h["value"] for h in hours)
             days.append({
                 "date": day_key,
                 "peak": round(peak, 2),
                 "level": level_for(peak, table),
+                "hours": hours,
             })
         result[short] = days
 
