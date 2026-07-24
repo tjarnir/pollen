@@ -118,6 +118,18 @@
   .chart-legend{margin:14px 0 0;font-size:.82rem;color:#7a8474}
   .chart-legend b{color:var(--clay);font-weight:600}
 
+  /* Dagsins gongd, tíma fyri tíma */
+  .today-curve{margin-top:14px}
+  #hours-wrap svg{width:100%;height:auto;display:block;overflow:visible}
+  .hbar{fill:var(--haze)}
+  .hbar.on{fill:var(--moss)}
+  .hbar.on.hi{fill:var(--clay)}
+  .hbar.now{fill:var(--moss-deep)}
+  .hlbl{fill:#8a9382;font-size:10.5px;font-family:Inter}
+  .hnow-line{stroke:var(--clay);stroke-width:1.5;stroke-dasharray:3 3;opacity:.8}
+  .hours-note{margin:12px 0 0;font-size:.82rem;color:#7a8474}
+  .hours-note b{color:var(--moss-deep);font-weight:600}
+
   /* Tíðarskeiðs-knøttar */
   .season-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
   .season-head h2{margin:0}
@@ -180,6 +192,12 @@
         <div class="dots" id="tmr-dots"></div>
       </div>
     </div>
+  </section>
+
+  <section class="fc today-curve" id="today-curve">
+    <h2>Í dag – tíma fyri tíma</h2>
+    <div id="hours-wrap"></div>
+    <p class="hours-note" id="hours-note"></p>
   </section>
 
   <section class="fc">
@@ -277,8 +295,84 @@ function render(){
       <span class="tag">${d.level.fo}</span>`;
     rows.appendChild(row);
   });
+  drawHours();
   drawChart();
 }
+function drawHours(){
+  const card=document.getElementById("today-curve");
+  const wrap=document.getElementById("hours-wrap");
+  const note=document.getElementById("hours-note");
+  const arr=DATA.forecast[current];
+  const today=arr && arr[0];
+  if(!today || !today.hours || today.hours.length<2){
+    card.style.display="none"; return;
+  }
+  card.style.display="";
+
+  // Umrokna UTC-tímarnar til føroyska tíð (tekur hædd fyri summartíð).
+  const hrs=today.hours.map(h=>({
+    ...h,
+    local: localHour(today.date, h.hour)
+  })).sort((a,b)=>a.local-b.local);
+
+  const W=680,H=150,padL=30,padR=10,padT=12,padB=24;
+  const maxV=Math.max(THRESH, ...hrs.map(h=>h.value))*1.15;
+  const bw=(W-padL-padR)/hrs.length;
+  const y=v=>padT+(1-v/maxV)*(H-padT-padB);
+
+  // Hvør tími er tann næsti tí, sum er nú (í føroyskari tíð)?
+  const nowH=faroeseNowHour();
+  let nowIdx=-1, best=99;
+  hrs.forEach((h,i)=>{const d=Math.abs(h.local-nowH); if(d<best){best=d;nowIdx=i;}});
+
+  let bars="";
+  hrs.forEach((h,i)=>{
+    const x=padL+i*bw+bw*0.15, w=bw*0.7;
+    const top=y(h.value), hh=Math.max(2,(H-padB)-top);
+    const isNow=i===nowIdx;
+    const hi=h.value>=50?" hi":"";
+    const cls="hbar on"+hi+(isNow?" now":"");
+    bars+=`<rect class="${cls}" x="${x}" y="${top}" width="${w}" height="${hh}" rx="3"/>`;
+  });
+
+  // tímamerki (hvør onnur súla, so tey ikki renna saman)
+  let lbls="";
+  hrs.forEach((h,i)=>{
+    if(i%2!==0) return;
+    lbls+=`<text class="hlbl" x="${padL+i*bw+bw/2}" y="${H-6}" text-anchor="middle">${pad2(h.local)}</text>`;
+  });
+
+  // y-merki
+  const ymax=Math.round(maxV);
+  lbls+=`<text class="hlbl" x="${padL-6}" y="${y(ymax)+3}" text-anchor="end">${ymax}</text>`;
+  lbls+=`<text class="hlbl" x="${padL-6}" y="${y(0)+3}" text-anchor="end">0</text>`;
+
+  wrap.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Pollen í dag, tíma fyri tíma">
+    ${bars}${lbls}
+  </svg>`;
+
+  const nowVal=hrs[nowIdx] ? hrs[nowIdx].value : null;
+  const peakH=hrs.reduce((a,b)=>b.value>a.value?b:a,hrs[0]);
+  note.innerHTML = nowVal!=null
+    ? `Um kl. ${pad2(hrs[nowIdx].local)}: <b>${nowVal.toFixed(1)} pollenkorn/m³</b> · ${levelFor(nowVal)}. `+
+      `Hægst um kl. ${pad2(peakH.local)} við ${peakH.value.toFixed(1)}.`
+    : `Hægst um kl. ${pad2(peakH.local)} við ${peakH.value.toFixed(1)} pollenkorn/m³.`;
+}
+
+function pad2(n){return String(n).padStart(2,"0");}
+
+// UTC-tími á einum ávísum degi -> tímin í Føroyum (tekur summartíð við).
+function localHour(dateIso, utcHour){
+  const d=new Date(dateIso+"T"+pad2(utcHour)+":00:00Z");
+  const s=d.toLocaleString("en-GB",{timeZone:"Atlantic/Faroe",hour:"2-digit",hour12:false});
+  return parseInt(s,10);
+}
+// Klokkan nú í Føroyum
+function faroeseNowHour(){
+  const s=new Date().toLocaleString("en-GB",{timeZone:"Atlantic/Faroe",hour:"2-digit",hour12:false});
+  return parseInt(s,10);
+}
+
 function drawChart(){
   const wrap=document.getElementById("chart-wrap");
   const card=document.getElementById("season-card");
@@ -418,7 +512,8 @@ function boot(data){
   DATA=data;
   const s=new Date(data.updated);
   document.getElementById("stamp").textContent =
-    "Dagført "+s.toISOString().slice(0,16).replace("T"," ")+" UTC";
+    "Dagført "+s.toLocaleString("da-DK",{timeZone:"Atlantic/Faroe",
+      year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});
   render();
 }
 // Tíðarskeiðs-knøttar
